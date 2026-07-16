@@ -1,0 +1,140 @@
+name: Release template
+
+on:
+  push:
+    tags:
+      - '*-v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release template
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Parse release tag
+        id: release
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+
+          if [[ ! "$TAG" =~ ^([a-z0-9-]+)-v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "Invalid release tag: $TAG"
+            echo "Expected format: <template-id>-v<version>"
+            echo "Example: base-v0.1.0"
+            exit 1
+          fi
+
+          TEMPLATE_ID="${BASH_REMATCH[1]}"
+          VERSION="${BASH_REMATCH[2]}"
+
+          echo "template_id=$TEMPLATE_ID" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Validate template directory
+        shell: bash
+        run: |
+          TEMPLATE_DIRECTORY="templates/${{ steps.release.outputs.template_id }}"
+
+          if [[ ! -d "$TEMPLATE_DIRECTORY" ]]; then
+            echo "Template directory does not exist: $TEMPLATE_DIRECTORY"
+            exit 1
+          fi
+
+          if [[ ! -f "$TEMPLATE_DIRECTORY/upkick.template.json" ]]; then
+            echo "Template metadata does not exist:"
+            echo "$TEMPLATE_DIRECTORY/upkick.template.json"
+            exit 1
+          fi
+
+      - name: Validate template metadata
+        shell: bash
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFile } from "node:fs/promises";
+
+          const templateId =
+            "${{ steps.release.outputs.template_id }}";
+
+          const tagVersion =
+            "${{ steps.release.outputs.version }}";
+
+          const metadataPath =
+            `templates/${templateId}/upkick.template.json`;
+
+          const metadata = JSON.parse(
+            await readFile(metadataPath, "utf8"),
+          );
+
+          if (metadata.id !== templateId) {
+            console.error(
+              `Template ID mismatch: tag=${templateId}, metadata=${metadata.id}`,
+            );
+
+            process.exit(1);
+          }
+
+          if (metadata.version !== tagVersion) {
+            console.error(
+              `Template version mismatch: tag=${tagVersion}, metadata=${metadata.version}`,
+            );
+
+            process.exit(1);
+          }
+
+          console.log(
+            `Validated ${templateId} v${tagVersion}`,
+          );
+          EOF
+
+      - name: Package template
+        run: |
+          pnpm package "${{ steps.release.outputs.template_id }}"
+
+      - name: Verify packaged files
+        shell: bash
+        run: |
+          OUTPUT_DIRECTORY="dist/${{ steps.release.outputs.template_id }}/${{ steps.release.outputs.version }}"
+          TEMPLATE_ID="${{ steps.release.outputs.template_id }}"
+
+          test -f "$OUTPUT_DIRECTORY/$TEMPLATE_ID.tar.gz"
+          test -f "$OUTPUT_DIRECTORY/$TEMPLATE_ID.sha256"
+          test -f "$OUTPUT_DIRECTORY/upkick.template.json"
+
+          echo "output_directory=$OUTPUT_DIRECTORY" >> "$GITHUB_ENV"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TEMPLATE_ID: ${{ steps.release.outputs.template_id }}
+          VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
+        shell: bash
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "$output_directory/$TEMPLATE_ID.tar.gz" \
+            "$output_directory/$TEMPLATE_ID.sha256" \
+            "$output_directory/upkick.template.json" \
+            --title "$TEMPLATE_ID v$VERSION" \
+            --generate-notes \
+            --verify-tag

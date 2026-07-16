@@ -1,0 +1,21 @@
+{
+  "$schema": "./schemas/templates-index.schema.json",
+  "schemaVersion": 1,
+  "templates": {
+    "base": {
+      "name": "Upkick Base",
+      "description": "Production-ready base template for Upkick projects.",
+      "latest": "0.1.0",
+      "status": "stable",
+      "default": true,
+      "category": "monorepo",
+      "tags": ["turborepo", "nextjs", "typescript", "pnpm"],
+      "release": {
+        "tag": "base-v0.1.0",
+        "archive": "base.tar.gz",
+        "checksum": "base.sha256",
+        "metadata": "upkick.template.json"
+      }
+    }
+  }
+}
