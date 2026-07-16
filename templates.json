@@ -22,7 +22,7 @@
       "description": "Production-ready AI Chatbot with ai-sdk by vercel.",
       "latest": "0.1.0",
       "status": "stable",
-      "default": true,
+      "default": false,
       "category": "monorepo",
       "tags": ["turborepo", "nextjs", "typescript", "pnpm"],
       "release": {
