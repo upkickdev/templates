@@ -138,3 +138,32 @@ jobs:
             --title "$TEMPLATE_ID v$VERSION" \
             --generate-notes \
             --verify-tag
+      - name: Checkout main branch
+        shell: bash
+        run: |
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+
+      - name: Update template index
+        run: |
+          node scripts/update-template-index.mjs \
+            "${{ steps.release.outputs.template_id }}"
+
+      - name: Commit template index
+        env:
+          TEMPLATE_ID: ${{ steps.release.outputs.template_id }}
+          VERSION: ${{ steps.release.outputs.version }}
+        shell: bash
+        run: |
+          if git diff --quiet -- templates.json; then
+            echo "templates.json already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add templates.json
+          git commit -m "chore(index): update $TEMPLATE_ID to v$VERSION"
+          git push origin main

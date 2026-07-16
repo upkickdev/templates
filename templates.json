@@ -5,13 +5,28 @@
     "base": {
       "name": "Upkick Base",
       "description": "Production-ready base template for Upkick projects.",
+      "latest": "0.1.1",
+      "status": "stable",
+      "default": true,
+      "category": "monorepo",
+      "tags": ["turborepo", "nextjs", "typescript", "pnpm"],
+      "release": {
+        "tag": "base-v0.1.1",
+        "archive": "base.tar.gz",
+        "checksum": "base.sha256",
+        "metadata": "upkick.template.json"
+      }
+    },
+    "ai-sdk-chatbot": {
+      "name": "Upkick AI SDK CHATBOT",
+      "description": "Production-ready AI Chatbot with ai-sdk by vercel.",
       "latest": "0.1.0",
       "status": "stable",
       "default": true,
       "category": "monorepo",
       "tags": ["turborepo", "nextjs", "typescript", "pnpm"],
       "release": {
-        "tag": "base-v0.1.0",
+        "tag": "base-v0.1.1",
         "archive": "base.tar.gz",
         "checksum": "base.sha256",
         "metadata": "upkick.template.json"
