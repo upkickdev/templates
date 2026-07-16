@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/upkick-template.schema.json",
+  "schemaVersion": 1,
+  "id": "ai-sdk-chatbot",
+  "name": "Upkick AI SDK CHATBOT",
+  "description": "Production-ready chatbot example with AI-SDK by Vercel.",
+  "version": "0.1.0",
+  "status": "beta",
+  "default": true,
+  "category": "monorepo",
+  "tags": ["turborepo", "nextjs", "typescript", "pnpm"],
+  "requirements": {
+    "node": ">=22.12.0",
+    "packageManagers": ["pnpm"]
+  },
+  "defaults": {
+    "packageManager": "pnpm",
+    "installDependencies": true,
+    "initializeGit": true
+  }
+}
