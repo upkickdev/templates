@@ -5,13 +5,18 @@
     "base": {
       "name": "Upkick Base",
       "description": "Production-ready base template for Upkick projects.",
-      "latest": "0.1.1",
+      "latest": "0.2.2",
       "status": "stable",
       "default": true,
       "category": "monorepo",
-      "tags": ["turborepo", "nextjs", "typescript", "pnpm"],
+      "tags": [
+        "turborepo",
+        "nextjs",
+        "typescript",
+        "pnpm"
+      ],
       "release": {
-        "tag": "base-v0.1.1",
+        "tag": "base-v0.2.2",
         "archive": "base.tar.gz",
         "checksum": "base.sha256",
         "metadata": "upkick.template.json"
@@ -24,7 +29,12 @@
       "status": "stable",
       "default": false,
       "category": "monorepo",
-      "tags": ["turborepo", "nextjs", "typescript", "pnpm"],
+      "tags": [
+        "turborepo",
+        "nextjs",
+        "typescript",
+        "pnpm"
+      ],
       "release": {
         "tag": "base-v0.1.1",
         "archive": "base.tar.gz",
