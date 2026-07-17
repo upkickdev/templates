@@ -4,7 +4,7 @@
   "id": "base",
   "name": "Upkick Base",
   "description": "Production-ready base template for Upkick projects.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "status": "stable",
   "default": true,
   "category": "monorepo",

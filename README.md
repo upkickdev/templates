@@ -1,107 +1,284 @@
-# upkick
+# Upkick Templates
 
-A minimal CLI tool for scaffolding new project boilerplates in seconds. When you run `upkick create <project-name>`, it picks up the folder name as the project name and generates a boilerplate project based on that folder's contents.
+Official project templates used by the Upkick CLI.
 
-## 🚀 Features
+Each template is stored independently under the `templates/` directory and published as a versioned GitHub Release asset.
 
-- **Zero configuration** — No setup required after installation.
-- **Folder-name-driven scaffolding** — `upkick create` automatically uses the current folder name as the project name.
-- **Instant boilerplate** — Generate all baseline project files with a single command.
-- **Template-based** — Powered by templates stored in the `templates/` directory.
+## Repository structure
 
-## 📦 Installation
+```text
+.
+├── .github/
+│   └── workflows/
+│       └── release-template.yml
+├── schemas/
+│   ├── templates-index.schema.json
+│   └── upkick-template.schema.json
+├── scripts/
+│   ├── package-template.mjs
+│   └── update-template-index.mjs
+├── templates/
+│   ├── base/
+│   │   └── upkick.template.json
+│   └── ai-sdk-chatbot/
+│       └── upkick.template.json
+├── templates.json
+└── package.json
+```
+
+## Template metadata
+
+Every template must contain an `upkick.template.json` file.
+
+Example:
+
+```json
+{
+  "$schema": "../../schemas/upkick-template.schema.json",
+  "schemaVersion": 1,
+  "id": "base",
+  "name": "Upkick Base",
+  "description": "Production-ready base template for Upkick projects.",
+  "version": "0.1.0",
+  "status": "stable",
+  "default": true,
+  "category": "monorepo",
+  "tags": [
+    "turborepo",
+    "nextjs",
+    "typescript",
+    "pnpm"
+  ],
+  "requirements": {
+    "node": ">=22.12.0",
+    "packageManagers": [
+      "pnpm"
+    ]
+  },
+  "defaults": {
+    "packageManager": "pnpm",
+    "installDependencies": true,
+    "initializeGit": true
+  }
+}
+```
+
+The template ID must match its directory name.
+
+```text
+templates/base/upkick.template.json
+          └── id: "base"
+```
+
+Only one template may have:
+
+```json
+{
+  "default": true
+}
+```
+
+## Install dependencies
 
 ```bash
-npm install -g upkick/cli
+pnpm install
 ```
 
-Or use it without installing globally:
+## Package a template locally
 
 ```bash
-npx upkick create <project-name>
+pnpm package base
 ```
 
-## 🛠 Usage
+Example output:
 
-`upkick create` reads the current folder name and uses it as the project name, scaffolding a new project inside that directory.
-
-### 1. Scaffold from the current folder
-
-```bash
-mkdir my-app
-cd my-app
-upkick create
+```text
+dist/
+└── base/
+    └── 0.1.0/
+        ├── base.tar.gz
+        ├── base.sha256
+        └── upkick.template.json
 ```
 
-This uses the current folder name (`my-app`) as the project name and writes all boilerplate files into it.
+The archive contains the contents of the template directory directly.
 
-### 2. Specify the project name explicitly
-
-```bash
-upkick create my-app
-```
-
-Creates a new project with the given name.
-
-### 3. Help
-
-```bash
-upkick --help
-upkick create --help
-```
-
-## 📂 Project Structure
-
-Running `upkick` produces a structure similar to the following:
-
-```
-my-app/
-├── src/
-│   └── index.<ext>
-├── README.md
-├── .gitignore
+```text
+base.tar.gz
+├── upkick.template.json
 ├── package.json
-└── ...
+├── apps/
+└── packages/
 ```
 
-The exact files and folders depend on the chosen template.
-
-## 🧩 Templates
-
-This directory (`templates/`) holds the boilerplate templates used by `upkick`. To add a new template:
-
-1. Create a new folder under `templates/` (e.g. `react-app`, `node-api`).
-2. Drop your template files into that folder.
-3. Reference the template when running `upkick create`:
+## Update the template index
 
 ```bash
-upkick create my-app --template react-app
+pnpm index:update base
 ```
 
-## 💡 Examples
+This command reads:
 
-### Scaffold a React project
+```text
+templates/base/upkick.template.json
+```
+
+and updates the corresponding entry in:
+
+```text
+templates.json
+```
+
+The release workflow runs this automatically after a successful release.
+
+## Release a template
+
+Each template is versioned independently.
+
+The release tag format is:
+
+```text
+<template-id>-v<version>
+```
+
+Examples:
+
+```text
+base-v0.1.0
+base-v0.2.0
+ai-sdk-chatbot-v1.0.0
+```
+
+Before creating a tag, update the template version:
+
+```json
+{
+  "id": "base",
+  "version": "0.2.0"
+}
+```
+
+Commit and push the change:
 
 ```bash
-mkdir todo-app && cd todo-app
-upkick create
+git add templates/base/upkick.template.json
+git commit -m "release(base): v0.2.0"
+git push origin main
 ```
 
-### Scaffold a Node.js API project
+Create and push the matching tag:
 
 ```bash
-mkdir user-service && cd user-service
-upkick create
+git tag base-v0.2.0
+git push origin base-v0.2.0
 ```
 
-## 🤝 Contributing
+The GitHub Actions workflow will:
 
-1. Fork this repository.
-2. Create a new branch (`git checkout -b feature/new-template`).
-3. Commit your changes (`git commit -m 'feat: add new template'`).
-4. Push to the branch (`git push origin feature/new-template`).
-5. Open a Pull Request.
+1. Parse the template ID and version from the tag.
+2. Validate the template metadata.
+3. Package the selected template.
+4. Generate a SHA-256 checksum.
+5. Create a GitHub Release.
+6. Upload the archive, checksum and metadata.
+7. Update `templates.json`.
+8. Commit the updated index to `main`.
 
-## 📄 License
+## Release assets
 
-MIT
+A release contains:
+
+```text
+base.tar.gz
+base.sha256
+upkick.template.json
+```
+
+Example download URL:
+
+```text
+https://github.com/upkickdev/templates/releases/download/base-v0.2.0/base.tar.gz
+```
+
+## Template index
+
+The CLI discovers the latest version of each template through:
+
+```text
+templates.json
+```
+
+Example:
+
+```json
+{
+  "schemaVersion": 1,
+  "templates": {
+    "base": {
+      "name": "Upkick Base",
+      "description": "Production-ready base template for Upkick projects.",
+      "latest": "0.2.0",
+      "status": "stable",
+      "default": true,
+      "category": "monorepo",
+      "tags": [
+        "turborepo",
+        "nextjs",
+        "typescript",
+        "pnpm"
+      ],
+      "release": {
+        "tag": "base-v0.2.0",
+        "archive": "base.tar.gz",
+        "checksum": "base.sha256",
+        "metadata": "upkick.template.json"
+      }
+    }
+  }
+}
+```
+
+The Upkick CLI can retrieve this file from:
+
+```text
+https://raw.githubusercontent.com/upkickdev/templates/main/templates.json
+```
+
+It then downloads the selected template from its versioned GitHub Release.
+
+## Adding a new template
+
+Create the template directory:
+
+```text
+templates/my-template/
+```
+
+Add template files and metadata:
+
+```text
+templates/my-template/upkick.template.json
+```
+
+The metadata ID must match the directory:
+
+```json
+{
+  "id": "my-template",
+  "version": "0.1.0",
+  "default": false
+}
+```
+
+Package it locally:
+
+```bash
+pnpm package my-template
+```
+
+Release it:
+
+```bash
+git tag my-template-v0.1.0
+git push origin my-template-v0.1.0
+```
